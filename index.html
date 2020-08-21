@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="">
+  <title>工时系统</title>
+</head>
+
+<body>
+  <noscript>
+    <strong>We're sorry but  工时系统  doesn't work properly without JavaScript enabled.
+      Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+  <script>
+    //  rem转换
+    (function (doc, win) {
+      var docEl = doc.documentElement,
+        resizeEvt = 'onorientationchange' in window ? 'orientationchange' : 'resize',
+        recalc = function () {
+          var clientWidth = docEl.clientWidth;
+          if (!clientWidth) return;
+          var orientation = window.orientation;
+          switch (orientation) {
+            case 90:
+            case -90:
+              orientation = 'landscape';
+              break;
+            default:
+              orientation = 'portrait';
+          }
+          docEl.setAttribute('class', orientation);
+          docEl.style.fontSize = 100 * (clientWidth / 375) + 'px';
+        };
+      recalc1 = function () {
+        setTimeout(function () {
+          var clientWidth = docEl.clientWidth;
+          if (!clientWidth) return;
+          var orientation = window.orientation;
+          switch (orientation) {
+            case 90:
+            case -90:
+              orientation = 'landscape';
+              break;
+            default:
+              orientation = 'portrait';
+          }
+          docEl.setAttribute('class', orientation);
+          docEl.style.fontSize = 100 * (clientWidth / 375) + 'px';
+        }, 300);
+      };
+      if (!doc.addEventListener) return;
+      win.addEventListener(resizeEvt, recalc1, false);
+      doc.addEventListener('DOMContentLoaded', recalc, false);
+      recalc();
+    })(document, window);
+  </script>
+</body>
+
+</html>
