@@ -44,6 +44,7 @@ import {
 import '@vant/touch-emulator';
 
 import 'vant/lib/index.css';
+import 'vant/lib/icon/local.css'
 
 Vue.use(Button)
 Vue.use(Tabbar);
