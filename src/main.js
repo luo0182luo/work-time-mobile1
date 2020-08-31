@@ -44,7 +44,7 @@ import {
 import '@vant/touch-emulator';
 
 import 'vant/lib/index.css';
-import 'vant/lib/icon/local.css'
+import 'vant/lib/icon/local.css';
 
 Vue.use(Button)
 Vue.use(Tabbar);
@@ -71,9 +71,28 @@ Vue.use(Collapse);
 Vue.use(CollapseItem);
 Vue.use(PullRefresh);
 Vue.use(List);
+
 // http请求
 import axios from "./utils/http.js"
 Vue.prototype.$axios = axios
+
+// 获取用户Id
+const userId = localStorage.getItem('dd-userId')
+if(userId){
+  Vue.prototype.$userId = userId
+}
+
+// 导航守卫
+import {requestAuthCode } from './utils/AuthCOde'
+router.beforeEach((to, from, next) => {
+  if (!Vue.prototype.$userId) {
+    next()
+    // requestAuthCode(next)
+  }else{
+    next()
+  }
+
+})
 
 new Vue({
   i18n,

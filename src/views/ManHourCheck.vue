@@ -1,6 +1,11 @@
 <template>
   <div class="man_hour_check">
-    <van-tabs v-model="activeName" :ellipsis="false" title-active-color="#a40000">
+    <van-tabs
+      v-model="activeName"
+      :ellipsis="false"
+      @change="toggleTabs"
+      title-active-color="#a40000"
+    >
       <van-tab :title="$t('ManHour.items')" name="items" badge="5"></van-tab>
       <van-tab :title="$t('ManHour.tasks')" name="tasks" badge="5"></van-tab>
       <van-tab :title="$t('ManHour.nonProject')" name="nonProject" badge="5"></van-tab>
@@ -16,7 +21,7 @@
         :error-text="$t('refresh.errorText')"
         @load="onLoad"
       >
-        <van-cell class="man_hour_check-header">
+        <van-cell class="man_hour_check-header" v-show="list[activeName].length">
           <template #title>
             <van-checkbox
               v-model="checked"
@@ -27,7 +32,7 @@
           </template>
         </van-cell>
         <van-checkbox-group v-model="result" ref="checkboxGroup" @change="checkboxGroupChange">
-          <div class="man_hour_check-content" v-for="(item,i) in list.items" :key="i">
+          <div class="man_hour_check-content" v-for="(item,i) in list[activeName]" :key="i">
             <van-cell>
               <div class="man_hour_check-content-item">
                 <van-checkbox
@@ -191,10 +196,13 @@ export default {
   },
   methods: {
     allCheckedChange(val) {
-      this.$refs.checkboxGroup.toggleAll(this.checked);
+      this.result = this.checked
+        ? this.list[this.activeName].map((item) => item.code)
+        : [];
     },
     checkboxGroupChange(val) {
-      const currentChecked = val.length === this.list[this.activeName].length;
+      const currentChecked =
+        val.length > 0 && val.length === this.list[this.activeName].length;
       this.$refs.allcheckbox.toggle(currentChecked);
     },
     onLoad() {
@@ -239,6 +247,9 @@ export default {
       this.$Dialog.alert({
         message: text,
       });
+    },
+    toggleTabs(val) {
+      this.result = [];
     },
   },
   activated() {

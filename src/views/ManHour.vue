@@ -668,6 +668,7 @@ export default {
     left: 0;
     width: 100%;
     box-shadow: 0 2px 10px rgba(125, 126, 128, 0.16);
+    text-align: center;
     .man_hour-grid-number {
       color: #a40000;
       font-weight: bold;

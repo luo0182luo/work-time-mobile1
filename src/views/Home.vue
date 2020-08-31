@@ -47,6 +47,7 @@ export default {
     if (!local) {
       this.isShow = true;
     }
+    this.$axios.get('/sd').then()
   },
   methods: {
     toggleLang() {
