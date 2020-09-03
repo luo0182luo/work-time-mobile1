@@ -6,7 +6,6 @@
         <router-view />
       </keep-alive>
     </div>
-
     <van-tabbar
       class="home-tabbar"
       safe-area-inset-bottom
@@ -47,7 +46,6 @@ export default {
     if (!local) {
       this.isShow = true;
     }
-    this.$axios.get('/sd').then()
   },
   methods: {
     toggleLang() {
@@ -72,7 +70,7 @@ export default {
     /deep/ .van-tabbar-item {
       color: #cccccc;
     }
-     /deep/ .van-tabbar-item--active {
+    /deep/ .van-tabbar-item--active {
       color: #007cf9;
     }
   }

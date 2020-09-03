@@ -81,6 +81,7 @@ const userId = localStorage.getItem('dd-userId')
 if(userId){
   Vue.prototype.$userId = userId
 }
+Vue.prototype.$userId = 'yangwang'
 
 // 导航守卫
 import {requestAuthCode } from './utils/AuthCOde'

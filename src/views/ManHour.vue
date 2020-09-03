@@ -1,164 +1,172 @@
 <template>
   <div class="man_hour">
-    <van-calendar
-      :show-title="false"
-      :show-subtitle="false"
-      :poppable="false"
-      :show-confirm="false"
-      :show-mark="false"
-      :min-date="minDate"
-      :max-date="maxDate"
-      :first-day-of-week="firstDayOfWeek"
-      class="man_hour-calendar"
-      :formatter="formatter"
-      @select="calendarOnSelect"
-      color="#007cf9"
-    />
+    <div role="grid" class="van-calendar__days man_hour-calendar">
+      <div class="van-calendar__day calendar-day" v-for="item in weekList" :key="item.name">
+        <div
+          :class="[item.date==currentTime?'van-calendar__selected-day':'']"
+          @click="weekClick(item)"
+        >
+          <div class="van-calendar__top-info">{{$t(item.name)}}</div>
+          <div class="van-calendar__bottom-info">{{item.text}}</div>
+        </div>
+      </div>
+    </div>
     <!-- <van-form> -->
-    <div class="man_hour-item">
-      <van-cell class="man_hour-item-header">
-        <template #title>
-          <van-icon name="label" class="man_hour-item-header-icon" />
-          <span class="man_hour-item-header-title">{{$t('ManHour.items')}}</span>
-        </template>
-        <template #extra>
-          <div class="man_hour-item-header-extra" @click="$router.push({path:'/taskslist/items'})">
-            <van-icon name="plus" />
-            <span>{{$t('ManHour.addItems')}}</span>
-          </div>
-        </template>
-      </van-cell>
-      <div class="man_hour-item-content">
-        <van-cell v-for="item in currentItemsManHourList" :key="item.code">
-          <template>
-            <div class="man_hour-custom">
-              <div class="man_hour-custom-title">{{item.code}}</div>
-              <div class="man_hour-custom-content">
-                <div>{{item.title}}</div>
-                <div class="man_hour-custom-content-text van-ellipsis">{{item.text}}</div>
-              </div>
-              <div class="man_hour-custom-operate">
-                <van-field
-                  class="man_hour-custom-operate-input"
-                  @touchstart.native.stop="onTouchstart(item)"
-                  v-model="item.value"
-                  @blur="onBlur(item)"
-                />
-                <van-icon
-                  class="man_hour-custom-operate-comment"
-                  name="info"
-                  @click="commentShowFn(item)"
-                />
-              </div>
+    <van-pull-refresh v-model="refreshing" @refresh="init">
+      <div class="man_hour-item">
+        <van-cell class="man_hour-item-header">
+          <template #title>
+            <van-icon name="label" class="man_hour-item-header-icon" />
+            <span class="man_hour-item-header-title">{{$t('ManHour.items')}}</span>
+          </template>
+          <template #extra>
+            <div
+              class="man_hour-item-header-extra"
+              @click="$router.push({path:'/taskslist/items'})"
+            >
+              <van-icon name="plus" />
+              <span>{{$t('ManHour.addItems')}}</span>
             </div>
           </template>
         </van-cell>
+        <div class="man_hour-item-content">
+          <van-cell v-for="item in currentItemsManHourList" :key="item.fdProjectId">
+            <template>
+              <div class="man_hour-custom">
+                <div class="man_hour-custom-title">{{item.itemCode}}</div>
+                <div class="man_hour-custom-content">
+                  <div>{{item.itemCont}}</div>
+                  <div class="man_hour-custom-content-text van-ellipsis">{{item.fdProjectStage}}</div>
+                </div>
+                <div class="man_hour-custom-operate">
+                  <van-field
+                    class="man_hour-custom-operate-input"
+                    @touchstart.native.stop="onTouchstart(item)"
+                    v-model="item.fdWorkhoursNum"
+                    :disabled="item.disable"
+                    @blur="onBlur(item)"
+                  />
+                  <van-icon
+                    class="man_hour-custom-operate-comment"
+                    name="info"
+                    @click="commentShowFn(item)"
+                  />
+                </div>
+              </div>
+            </template>
+          </van-cell>
+        </div>
       </div>
-    </div>
-    <div class="man_hour-item">
-      <van-cell class="man_hour-item-header">
-        <template #title>
-          <van-icon name="label" class="man_hour-item-header-icon" />
-          <span class="man_hour-item-header-title">{{$t('ManHour.tasks')}}</span>
-        </template>
-        <template #extra>
-          <div class="man_hour-item-header-extra" @click="$router.push({path:'/taskslist/tasks'})">
-            <van-icon name="plus" />
-            <span>{{$t('ManHour.addTasks')}}</span>
-          </div>
-        </template>
-      </van-cell>
-      <div class="man_hour-item-content">
-        <van-cell v-for="item in currentTasksManHourList" :key="item.code">
-          <template>
-            <div class="man_hour-custom">
-              <div class="man_hour-custom-title">{{item.code}}</div>
-              <div class="man_hour-custom-content">
-                <div>{{item.title}}</div>
-                <div class="man_hour-custom-content-text van-ellipsis">{{item.text}}</div>
-              </div>
-              <div class="man_hour-custom-operate">
-                <van-field
-                  class="man_hour-custom-operate-input"
-                  @touchstart.native.stop="onTouchstart(item)"
-                  v-model="item.value"
-                  @blur="onBlur(item)"
-                />
-                <van-icon
-                  class="man_hour-custom-operate-comment"
-                  name="info"
-                  @click="commentShowFn(item)"
-                />
-              </div>
+      <div class="man_hour-item">
+        <van-cell class="man_hour-item-header">
+          <template #title>
+            <van-icon name="label" class="man_hour-item-header-icon" />
+            <span class="man_hour-item-header-title">{{$t('ManHour.tasks')}}</span>
+          </template>
+          <template #extra>
+            <div
+              class="man_hour-item-header-extra"
+              @click="$router.push({path:'/taskslist/tasks'})"
+            >
+              <van-icon name="plus" />
+              <span>{{$t('ManHour.addTasks')}}</span>
             </div>
           </template>
         </van-cell>
+        <div class="man_hour-item-content">
+          <van-cell v-for="item in currentTasksManHourList" :key="item.fdTaskId">
+            <template>
+              <div class="man_hour-custom">
+                <div class="man_hour-custom-title">{{item.itemCode}}</div>
+                <div class="man_hour-custom-content">
+                  <div>{{item.itemCont}}</div>
+                </div>
+                <div class="man_hour-custom-operate">
+                  <van-field
+                    class="man_hour-custom-operate-input"
+                    @touchstart.native.stop="onTouchstart(item)"
+                    v-model="item.fdWorkhoursNum"
+                    :disabled="item.disable"
+                    @blur="onBlur(item)"
+                  />
+                  <van-icon
+                    class="man_hour-custom-operate-comment"
+                    name="info"
+                    @click="commentShowFn(item)"
+                  />
+                </div>
+              </div>
+            </template>
+          </van-cell>
+        </div>
       </div>
-    </div>
-    <div class="man_hour-item">
-      <van-cell class="man_hour-item-header">
-        <template #title>
-          <van-icon name="label" class="man_hour-item-header-icon" />
-          <span class="man_hour-item-header-title">{{$t('ManHour.nonProject')}}</span>
-        </template>
-      </van-cell>
-      <div class="man_hour-item-content">
-        <van-cell v-for="(item,i) in currentNonProjectList" :key="i">
-          <template>
-            <div class="man_hour-custom">
-              <div class="man_hour-custom-content">
-                <div>{{item.title}}</div>
-              </div>
-              <div class="man_hour-custom-operate">
-                <van-field
-                  class="man_hour-custom-operate-input"
-                  @touchstart.native.stop="onTouchstart(item)"
-                  v-model="item.value"
-                  @blur="onBlur(item)"
-                />
-                <van-icon
-                  class="man_hour-custom-operate-comment"
-                  name="info"
-                  @click="commentShowFn(item)"
-                />
-              </div>
-            </div>
+      <div class="man_hour-item">
+        <van-cell class="man_hour-item-header">
+          <template #title>
+            <van-icon name="label" class="man_hour-item-header-icon" />
+            <span class="man_hour-item-header-title">{{$t('ManHour.nonProject')}}</span>
           </template>
         </van-cell>
+        <div class="man_hour-item-content">
+          <van-cell v-for="item in currentNonProjectList" :key="item.id">
+            <template>
+              <div class="man_hour-custom">
+                <div class="man_hour-custom-content">
+                  <div>{{item.itemCont}}</div>
+                </div>
+                <div class="man_hour-custom-operate">
+                  <van-field
+                    class="man_hour-custom-operate-input"
+                    @touchstart.native.stop="onTouchstart(item)"
+                    v-model="item.fdWorkhoursNum"
+                    :disabled="item.disable"
+                    @blur="onBlur(item)"
+                  />
+                  <van-icon
+                    class="man_hour-custom-operate-comment"
+                    name="info"
+                    @click="commentShowFn(item)"
+                  />
+                </div>
+              </div>
+            </template>
+          </van-cell>
+        </div>
       </div>
-    </div>
-    <div class="man_hour-item">
-      <van-cell class="man_hour-item-header">
-        <template #title>
-          <van-icon name="label" class="man_hour-item-header-icon" />
-          <span class="man_hour-item-header-title">{{$t('ManHour.leave')}}</span>
-        </template>
-      </van-cell>
-      <div class="man_hour-item-content">
-        <van-cell v-for="(item,i) in currenLeaveList" :key="i">
-          <template>
-            <div class="man_hour-custom">
-              <div class="man_hour-custom-content">
-                <div>{{item.title}}</div>
-              </div>
-              <div class="man_hour-custom-operate">
-                <van-field
-                  class="man_hour-custom-operate-input"
-                  @touchstart.native.stop="onTouchstart(item)"
-                  v-model="item.value"
-                  @blur="onBlur(item)"
-                />
-                <van-icon
-                  class="man_hour-custom-operate-comment"
-                  name="info"
-                  @click="commentShowFn(item)"
-                />
-              </div>
-            </div>
+      <div class="man_hour-item">
+        <van-cell class="man_hour-item-header">
+          <template #title>
+            <van-icon name="label" class="man_hour-item-header-icon" />
+            <span class="man_hour-item-header-title">{{$t('ManHour.leave')}}</span>
           </template>
         </van-cell>
+        <div class="man_hour-item-content">
+          <van-cell v-for="item in currenLeaveList" :key="item.id">
+            <template>
+              <div class="man_hour-custom">
+                <div class="man_hour-custom-content">
+                  <div>{{item.itemCont}}</div>
+                </div>
+                <div class="man_hour-custom-operate">
+                  <van-field
+                    class="man_hour-custom-operate-input"
+                    @touchstart.native.stop="onTouchstart(item)"
+                    v-model="item.fdWorkhoursNum"
+                    :disabled="item.disable"
+                    @blur="onBlur(item)"
+                  />
+                  <van-icon
+                    class="man_hour-custom-operate-comment"
+                    name="info"
+                    @click="commentShowFn(item)"
+                  />
+                </div>
+              </div>
+            </template>
+          </van-cell>
+        </div>
       </div>
-    </div>
+    </van-pull-refresh>
     <!-- </van-form> -->
     <!-- 提交 -->
     <div class="man_hour-grid">
@@ -170,7 +178,7 @@
         </van-grid-item>
         <van-grid-item :text="$t('ManHour.attendance')">
           <template #icon>
-            <span class="man_hour-grid-number">12.2</span>
+            <span class="man_hour-grid-number">{{currentClocking}}</span>
           </template>
         </van-grid-item>
         <van-grid-item class="van-button van-button--info van-button--normal" @click="confirmFn">
@@ -180,7 +188,7 @@
     </div>
     <!-- 键盘 -->
     <van-number-keyboard
-      v-model="currentItem.value"
+      v-model="currentItem.fdWorkhoursNum"
       :show="keyboardShow"
       theme="custom"
       extra-key="."
@@ -199,7 +207,7 @@
       />
     </van-dialog>
     <!-- 确认弹窗 -->
-    <van-dialog v-model="confirmShow" show-cancel-button class="confirm">
+    <van-dialog v-model="confirmShow" show-cancel-button class="confirm" @confirm="handleConfirm">
       <template #title>
         <div class="confirm-header">
           <div class="confirm-header-left">
@@ -242,19 +250,12 @@ export default {
   name: "ManHour",
   data() {
     return {
+      refreshing: false,
       collapseName: [],
-      maxDate: moment()._d,
       keyboardShow: false,
       commentShow: false,
       summary: {},
-      itemsManHourList: [
-        {
-          code: "GY2020121",
-          title:
-            "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-          text: "方案阶段",
-        },
-      ],
+      itemsManHourList: [],
       tasksManHourList: [
         {
           code: "GY2020123",
@@ -278,7 +279,9 @@ export default {
           title: "包括休年假、产假、事假、病假等等",
         },
       ],
-      currentTime: moment()._d,
+      weekList: [],
+      currentTime: "",
+      currentClocking: 0,
       currentItem: {
         value: "",
         comment: "",
@@ -289,105 +292,123 @@ export default {
     };
   },
   computed: {
-    minDate() {
-      return moment(this.maxDate).subtract(6, "days")._d;
-    },
     firstDayOfWeek() {
-      return moment(this.maxDate).day();
+      return moment(this.maxDate).day() + 1;
     },
     currentItemsManHourList() {
       return this.itemsManHourList.filter(
-        (item) => item.time === moment(this.currentTime).format("YYYY-MM-DD")
+        (item) => item.fdWorkhoursDateString === this.currentTime
       );
     },
     currentTasksManHourList() {
       return this.tasksManHourList.filter(
-        (item) => item.time === moment(this.currentTime).format("YYYY-MM-DD")
+        (item) => item.fdWorkhoursDateString === this.currentTime
       );
     },
     currentNonProjectList() {
       return this.nonProjectList.filter(
-        (item) => item.time === moment(this.currentTime).format("YYYY-MM-DD")
+        (item) => item.fdWorkhoursDateString === this.currentTime
       );
     },
     currenLeaveList() {
       return this.leaveList.filter(
-        (item) => item.time === moment(this.currentTime).format("YYYY-MM-DD")
+        (item) => item.fdWorkhoursDateString === this.currentTime
       );
     },
     ...mapState(["addtype", "addlist"]),
   },
   watch: {
-    currentTime() {
-      this.getManHourSum();
+    currentTime(val) {
+      this.manHourSum = this.getManHourSum(val);
     },
     addlist(val) {
-      this[`${this.addtype}ManHourList`] = [
-        ...this[`${this.addtype}ManHourList`],
-        ...this.dateInit(
-          val.filter((item) =>
-            this[`${this.addtype}ManHourList`].every(
-              (item1) => item1.code !== item.code
-            )
-          )
-        ),
-      ];
+      switch (this.addtype) {
+        case "items":
+          this.itemsManHourList = this.itemsManHourList.concat(
+            val
+              .filter((item) => {
+                return !this.itemsManHourList.some(
+                  (beforeItem) => beforeItem.fdProjectId === item.fdProjectId
+                );
+              })
+              .map((item) => this.getHoursFn(item))
+              .flat()
+          );
+          break;
+        case "tasks":
+          this.tasksManHourList = this.tasksManHourList.concat(
+            val
+              .filter((item) => {
+                return !this.tasksManHourList.some(
+                  (beforeItem) => beforeItem.fdTaskId === item.fdTaskId
+                );
+              })
+              .map((item) => this.getHoursFn(item))
+              .flat()
+          );
+          break;
+        default:
+          break;
+      }
     },
   },
   methods: {
-    getManHourSum() {
+    weekClick(item) {
+      this.currentTime = item.date;
+      this.currentClocking = item.clocking;
+    },
+    getManHourSum(currentTime) {
+      let manHourSum = 0;
       const list = [].concat(
-        this.currentItemsManHourList,
-        this.currentTasksManHourList,
-        this.currentNonProjectList,
-        this.currenLeaveList
+        this.itemsManHourList.filter(
+          (item) => item.fdWorkhoursDateString === currentTime
+        ),
+        this.tasksManHourList.filter(
+          (item) => item.fdWorkhoursDateString === currentTime
+        ),
+        this.nonProjectList.filter(
+          (item) => item.fdWorkhoursDateString === currentTime
+        ),
+        this.leaveList.filter(
+          (item) => item.fdWorkhoursDateString === currentTime
+        )
       );
       if (list.length === 0) {
-        this.manHourSum = 0;
-        return false;
+        return manHourSum;
       }
-      this.manHourSum = list.reduce((item1, item2) => {
+      manHourSum = list.reduce((item1, item2) => {
         let num1;
         if (!Number.isNaN(parseFloat(item1))) {
           num1 = item1;
         } else {
-          num1 = Number.isNaN(parseFloat(item1.value))
+          num1 = Number.isNaN(parseFloat(item1.fdWorkhoursNum))
             ? 0
-            : parseFloat(item1.value);
+            : parseFloat(item1.fdWorkhoursNum);
         }
-        const num2 = Number.isNaN(parseFloat(item2.value))
+        const num2 = Number.isNaN(parseFloat(item2.fdWorkhoursNum))
           ? 0
-          : parseFloat(item2.value);
+          : parseFloat(item2.fdWorkhoursNum);
         return num1 + num2;
       });
-    },
-    formatter(day) {
-      const month = day.date.getMonth() + 1;
-      const date = day.date.getDate();
-      const week = day.date.getDay();
-      day.text = "";
-      day.topInfo = this.$t(`weeks[${week}]`);
-      day.bottomInfo = `${month}.${date}`;
-      day.className = "calendar-day";
-      return day;
+      return manHourSum;
     },
     onInput(val) {
-      this.currentItem.value = val;
-    },
-    calendarOnSelect(day) {
-      this.currentTime = moment(day);
+      this.currentItem.fdWorkhoursNum = val;
     },
     onTouchstart(item) {
+      if (item.disable) {
+        return false;
+      }
       this.currentItem = item;
       this.keyboardShow = true;
     },
     onBlur(item) {
       const regEx = /^(([1-9][0-9]*)|(([0]\.\d{1,2}|[1-9][0-9]*\.\d{1})))$/;
-      if (!regEx.test(item.value)) {
+      if (!regEx.test(item.fdWorkhoursNum)) {
         this.$Toast(this.$t("ManHour.regNumber"));
-        item.value = "";
+        item.fdWorkhoursNum = "";
       }
-      this.getManHourSum();
+      this.manHourSum = this.getManHourSum(this.currentTime);
     },
     commentShowFn(item) {
       this.currentItem = item;
@@ -400,52 +421,56 @@ export default {
         ...this.tasksManHourList,
         ...this.nonProjectList,
         ...this.leaveList,
-      ].forEach((item) => {
-        if (!Number.isNaN(parseFloat(item.value))) {
-          const num = Number.isNaN(parseFloat(item.value))
+      ]
+        .filter(
+          (item) =>
+            !Number.isNaN(parseFloat(item.fdWorkhoursNum)) && !item.disable
+        )
+        .forEach((item) => {
+          const num = Number.isNaN(parseFloat(item.fdWorkhoursNum))
             ? 0
-            : parseFloat(item.value);
+            : parseFloat(item.fdWorkhoursNum);
           switch (this.confirmType) {
             case "confirmTime":
-              if (arr[item.time]) {
-                arr[item.time].sum += num;
-                arr[item.time].list.push({
-                  title: item.title,
-                  value: item.value,
-                  text: item.text,
+              if (arr[item.fdWorkhoursDateString]) {
+                arr[item.fdWorkhoursDateString].sum += num;
+                arr[item.fdWorkhoursDateString].list.push({
+                  title: item.itemCont,
+                  value: item.fdWorkhoursNum,
+                  text: item.fdProjectStage,
                 });
               } else {
-                arr[item.time] = {
-                  code: item.time,
-                  title: item.time,
+                arr[item.fdWorkhoursDateString] = {
+                  code: item.fdWorkhoursDateString,
+                  title: item.fdWorkhoursDateString,
                   sum: num,
                   list: [
                     {
-                      text: item.text,
-                      title: item.title,
-                      value: item.value,
+                      text: item.fdProjectStage,
+                      title: item.itemCont,
+                      value: item.fdWorkhoursNum,
                     },
                   ],
                 };
               }
               break;
             case "confirmItem":
-              if (arr[item.code]) {
-                arr[item.code].sum += num;
-                arr[item.code].list.push({
-                  title: item.time,
-                  value: item.value,
+              if (arr[item.itemCode]) {
+                arr[item.itemCode].sum += num;
+                arr[item.itemCode].list.push({
+                  title: item.fdWorkhoursDateString,
+                  value: item.fdWorkhoursNum,
                 });
               } else {
-                arr[item.code] = {
-                  code: item.code,
-                  title: item.title,
-                  text: item.text,
+                arr[item.itemCode] = {
+                  code: item.itemCode,
+                  title: item.itemCont,
+                  text: item.fdProjectStage,
                   sum: num,
                   list: [
                     {
-                      title: item.time,
-                      value: item.value,
+                      title: item.fdWorkhoursDateString,
+                      value: item.fdWorkhoursNum,
                     },
                   ],
                 };
@@ -454,11 +479,18 @@ export default {
             default:
               break;
           }
-        }
-      });
+        });
       return arr;
     },
     confirmFn() {
+      if (this.weekList.some((item) => this.getManHourSum(item.date) > 24)) {
+        this.$Toast("每天的工时总和不得超过24小时");
+        return false;
+      }
+      if (this.leaveList.some((item) => item.fdWorkhoursNum > 8)) {
+        this.$Toast("每天请假工时不得超过8小时");
+        return false;
+      }
       this.summary = this.getSummary();
       if (Object.keys(this.summary).length == 0) {
         this.$Toast(this.$t("ManHour.summaryTip"));
@@ -486,68 +518,139 @@ export default {
       this.summary = this.getSummary();
       this.collapseName = Object.keys(this.summary);
     },
-    /**
-     * 对 新增 项目/任务 生成七条数据
-     * @param {Array} list
-     */
-    dateInit(list) {
-      let valList = [];
-      for (let index = 6; index >= 0; index--) {
-        valList.push({
-          time: moment(this.maxDate)
-            .subtract(index, "days")
-            .format("YYYY-MM-DD"),
-          value: "",
-          comment: "",
-          disabled: false,
-        });
+    getHoursList(weekList, fillinDateList) {
+      if (!fillinDateList) {
+        fillinDateList = [];
       }
-      return list
-        .map((item) => {
-          return valList.map((valItem) => {
-            return Object.assign({}, JSON.parse(JSON.stringify(valItem)), item);
+      return function getHoursList(item) {
+        let { hoursList, ...other } = item;
+        if (!Array.isArray(hoursList)) {
+          hoursList = [];
+        }
+        return weekList.map((time) => {
+          const hours = hoursList.find((currentItem) => {
+            return (
+              moment(currentItem.fdWorkhoursDate).format("YYYY-MM-DD") === time
+            );
           });
-        })
-        .flat();
+          return (
+            hours || {
+              ...other,
+              fdDesc: "",
+              fdWorkhoursDate: moment(time).valueOf(),
+              fdWorkhoursDateString: moment(time).format("YYYY-MM-DD"),
+              fdWorkhoursNum: "",
+              disable: fillinDateList.indexOf(time) !== -1,
+            }
+          );
+        });
+      };
     },
     init() {
-      // 模拟数据
-      const itemsManHourList = [
-        {
-          code: "GY20200801",
-          title:
-            "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-          text: "方案阶段",
-        },
-      ];
-      const tasksManHourList = [
-        {
-          code: "GT20200802",
-          title:
-            "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-          text: "方案阶段",
-        },
-      ];
-      const nonProjectList = [
-        {
-          title:
-            "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-        },
-        {
-          title:
-            "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-        },
-      ];
-      const leaveList = [
-        {
-          title: "包括休年假、产假、事假、病假等等",
-        },
-      ];
-      // 数据初始化
-      this.itemsManHourList = this.dateInit(itemsManHourList);
-      this.tasksManHourList = this.dateInit(tasksManHourList);
-      this.nonProjectList = this.dateInit(nonProjectList);
-      this.leaveList = this.dateInit(leaveList);
+      this.$axios
+        .get(`/api/worktime/dTalk/list/${this.$userId}`)
+        .then((res) => {
+          this.weekList = res.data.weekList.map((item, i) => {
+            return {
+              name: `weeks[${moment(item).day()}]`,
+              text: moment(item).format("M.D"),
+              date: item,
+              clocking: res.data.clockingList[i],
+            };
+          });
+          this.currentTime = res.data.weekList[6];
+          this.currentClocking = res.data.clockingList[6];
+          // 生成七天list的函数
+          this.getHoursFn = this.getHoursList(
+            res.data.weekList,
+            res.data.fillinDateList
+          );
+          const getHoursList = this.getHoursFn;
+          this.itemsManHourList = res.data.projectList
+            ? res.data.projectList
+                .map((item) => {
+                  return getHoursList(item);
+                })
+                .flat()
+            : [];
+          this.tasksManHourList = res.data.taskList
+            ? res.data.taskList
+                .map((item) => {
+                  return getHoursList(item);
+                })
+                .flat()
+            : [];
+          this.nonProjectList = res.data.noprojectList
+            ? res.data.noprojectList
+                .map((item) => {
+                  return getHoursList(item);
+                })
+                .flat()
+            : [];
+          this.leaveList = res.data.vacationList
+            ? res.data.vacationList
+                .map((item) => {
+                  return getHoursList(item);
+                })
+                .flat()
+            : [];
+        })
+        .finally(() => {
+          this.refreshing = false;
+        });
+    },
+    handleParams(list = []) {
+      const arr = [];
+      list.forEach((item) => {
+        let currentItem = null;
+        if (item.fdProjectId) {
+          //  项目
+          currentItem = arr.find(
+            (newItem) => (newItem.fdProjectId = item.fdProjectId)
+          );
+        } else if (item.fdTaskId) {
+          // 任务
+          currentItem = arr.find(
+            (newItem) => (newItem.fdTaskId = item.fdTaskId)
+          );
+        } else {
+          // 其他
+          currentItem = arr.find((newItem) => (newItem.id = item.id));
+        }
+        const { fdWorkhoursNum, fdDesc, disable, ...other } = item;
+        if (!Number.isNaN(parseFloat(fdWorkhoursNum)) > 0 && !disable) {
+          if (currentItem) {
+            currentItem.hoursList.push(item);
+          } else {
+            arr.push({ ...other, hoursList: [item] });
+          }
+        }
+      });
+      return arr;
+    },
+    handleConfirm() {
+      const params = {
+        projectList: this.handleParams(this.itemsManHourList),
+        taskList: this.handleParams(this.tasksManHourList),
+        noprojectList: this.handleParams(this.nonProjectList),
+        vacationList: this.handleParams(this.leaveList),
+      };
+      this.$axios
+        .post("/api/worktime/dTalk/submit", {
+          userId: this.$userId,
+          ...params,
+        })
+        .then((res) => {
+          this.$Toast("提交成功");
+          this.init();
+        })
+        .catch((err) => {
+          if (err.message) {
+            this.$Toast(err.message);
+          } else {
+            this.$Toast("请求失败");
+          }
+        });
     },
   },
   created() {
@@ -567,6 +670,7 @@ export default {
     width: 100%;
     box-sizing: border-box;
     padding: 5px;
+    background: #ffffff;
     /deep/ .van-calendar__month-title,
     /deep/ .van-calendar__day--disabled {
       display: none;
@@ -740,6 +844,7 @@ export default {
         color: #a40000;
       }
     }
+
     // /deep/ .van-collapse-item__title::before,
     // /deep/ .van-dialog__footer::before {
     //   position: absolute;
@@ -763,5 +868,8 @@ export default {
     //   z-index: 1;
     // }
   }
+}
+.van-calendar__selected-day {
+  background: #007cf9;
 }
 </style>
