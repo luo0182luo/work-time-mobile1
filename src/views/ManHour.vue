@@ -322,6 +322,11 @@ export default {
       this.manHourSum = this.getManHourSum(val);
     },
     addlist(val) {
+      this.$Toast({
+        message: "加载中...",
+        forbidClick: true,
+        duration: 0,
+      });
       switch (this.addtype) {
         case "items":
           this.itemsManHourList = this.itemsManHourList.concat(
@@ -350,6 +355,7 @@ export default {
         default:
           break;
       }
+      this.$Toast.clear();
     },
   },
   methods: {

@@ -19,7 +19,6 @@ export function requestAuthCode(Fn) {
         Vue.prototype.$axios.get(`/api/dTalk/getUserId/${result.code}`).then(res => {
           Toast.clear();
           Vue.prototype.$userId = res.data.userId
-          localStorage.setItem('dd-userId',res.data.userId)
           if (typeof Fn === 'function') {
             Fn()
           }

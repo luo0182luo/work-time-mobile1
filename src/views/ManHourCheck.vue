@@ -6,12 +6,13 @@
       @change="toggleTabs"
       title-active-color="#a40000"
     >
-      <van-tab :title="$t('ManHour.items')" name="items" badge="5"></van-tab>
-      <van-tab :title="$t('ManHour.tasks')" name="tasks" badge="5"></van-tab>
-      <van-tab :title="$t('ManHour.nonProject')" name="nonProject" badge="5"></van-tab>
-      <van-tab :title="$t('ManHour.leave')" name="leave" badge="5"></van-tab>
+      <van-tab :title="$t('ManHour.items')" name="items" :badge="sumList[1]||''"></van-tab>
+      <van-tab :title="$t('ManHour.tasks')" name="tasks" :badge="sumList[3]||''"></van-tab>
+      <van-tab :title="$t('ManHour.nonProject')" name="nonProject" :badge="sumList[2]||''"></van-tab>
+      <van-tab :title="$t('ManHour.leave')" name="leave" :badge="sumList[4]||''"></van-tab>
       <van-tab :title="$t('ManHourCheck.check')" name="check"></van-tab>
     </van-tabs>
+
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model="loading"
@@ -21,7 +22,10 @@
         :error-text="$t('refresh.errorText')"
         @load="onLoad"
       >
-        <van-cell class="man_hour_check-header" v-show="list[activeName].length">
+        <van-cell
+          class="man_hour_check-header"
+          v-show="list[activeName].length && activeName!='check'"
+        >
           <template #title>
             <van-checkbox
               v-model="checked"
@@ -32,35 +36,36 @@
           </template>
         </van-cell>
         <van-checkbox-group v-model="result" ref="checkboxGroup" @change="checkboxGroupChange">
-          <div class="man_hour_check-content" v-for="(item,i) in list[activeName]" :key="i">
+          <div class="man_hour_check-content" v-for="item in list[activeName]" :key="item.id">
             <van-cell>
               <div class="man_hour_check-content-item">
                 <van-checkbox
                   class="man_hour_check-content-item-checkbox"
-                  :name="item.code"
+                  :name="item.id"
                   shape="square"
+                  v-if="activeName!='check'"
                 ></van-checkbox>
                 <div class="man_hour_check-content-item-text-wrap">
                   <div
                     class="man_hour_check-content-item-text"
-                    v-for="(colum,j) in item.list"
+                    v-for="(colum,j) in item.hourList"
                     :key="j"
                   >
                     <span>{{colum.time}}</span>
-                    <span>星期五</span>
-                    <span style="color:#a40000;font-weight:bold;">{{colum.value}}小时</span>
+                    <span>{{$t(colum.week)}}</span>
+                    <span style="color:#a40000;font-weight:bold;">{{colum.date}}</span>
                     <van-icon
                       class="man_hour_check-content-item-icon"
                       name="info"
-                      @click="showComment(colum.comment)"
+                      @click="showComment(item,colum.time.slice(0,10))"
                     />
                   </div>
                   <div class="man_hour_check-content-item-tip">
-                    <span>{{item.title}}</span>
-                    <span v-if="item.text">{{item.text}}</span>
+                    <span>{{item.wtTitle}}</span>
+                    <span v-if="item.fdProjectStage">{{item.fdProjectStage}}</span>
                   </div>
                   <div class="man_hour_check-content-item-tip">
-                    <span>{{item.name}}</span>
+                    <span>{{item.creator}}</span>
                     <span>{{item.createTime}}</span>
                   </div>
                 </div>
@@ -70,134 +75,67 @@
         </van-checkbox-group>
       </van-list>
     </van-pull-refresh>
+
     <div class="man_hour_check-footer">
-      <van-button type="danger" style="width:50%">驳回</van-button>
-      <van-button type="info" style="width:50%">通过</van-button>
+      <van-button type="danger" style="width:50%" @click="handleDisapprove">驳回</van-button>
+      <van-button type="info" style="width:50%" @click="handleApprove">通过</van-button>
     </div>
+    <van-dialog v-model="disapproveDialog" show-cancel-button :before-close="handleBeforeClose">
+      <div class="disapprove-dialog">
+        <p>确认驳回选中的工时吗？</p>
+        <van-field
+          label="驳回理由"
+          placeholder="请输入驳回理由"
+          class="van-hairline--surround"
+          v-model="fdOpinion"
+        />
+      </div>
+    </van-dialog>
   </div>
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
   name: "ManHourCheck",
   data() {
     return {
+      sumList: {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+      },
+      disapproveDialog: false,
+      fdOpinion: "",
       activeName: "items",
       checked: false,
       result: [],
       list: {
-        items: [
-          {
-            code: "GY2020121",
-            title:
-              "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-            text: "方案阶段",
-            name: "杨旺",
-            createTime: "2020-08-07",
-            sum: "4",
-            list: [
-              {
-                time: "2020-08-06",
-                value: "2",
-                comment: "sdfasdfasdf",
-              },
-              {
-                time: "2020-08-07",
-                value: "2",
-                comment: "备注信息备注信息备注信息",
-              },
-              {
-                time: "2020-08-06",
-                value: "2",
-                comment: "sdfasdfasdf",
-              },
-              {
-                time: "2020-08-07",
-                value: "2",
-                comment: "备注信息备注信息备注信息",
-              },
-            ],
-          },
-          {
-            code: "GY2020122",
-            title:
-              "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-            text: "方案阶段",
-            name: "杨旺",
-            createTime: "2020-08-07",
-            sum: "4",
-            list: [
-              {
-                time: "2020-08-06",
-                value: "2",
-                comment: "sdfasdfasdf",
-              },
-              {
-                time: "2020-08-07",
-                value: "2",
-                comment: "备注信息备注信息备注信息",
-              },
-            ],
-          },
-          {
-            code: "GY2020123",
-            title:
-              "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-            text: "方案阶段",
-            name: "杨旺",
-            createTime: "2020-08-07",
-            sum: "4",
-            list: [
-              {
-                time: "2020-08-06",
-                value: "2",
-                comment: "sdfasdfasdf",
-              },
-              {
-                time: "2020-08-07",
-                value: "2",
-                comment: "备注信息备注信息备注信息",
-              },
-            ],
-          },
-          {
-            code: "GY2020124",
-            title:
-              "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-            text: "方案阶段",
-            name: "杨旺",
-            createTime: "2020-08-07",
-            sum: "4",
-            list: [
-              {
-                time: "2020-08-06",
-                value: "2",
-                comment: "sdfasdfasdf",
-              },
-              {
-                time: "2020-08-07",
-                value: "2",
-                comment: "备注信息备注信息备注信息",
-              },
-            ],
-          },
-        ],
+        items: [],
         tasks: [],
         nonProject: [],
         leave: [],
         check: [],
       },
+      activeValue: {
+        items: "1",
+        tasks: "2",
+        nonProject: "3",
+        leave: "4",
+      },
       loading: false,
       finished: false,
       refreshing: false,
       error: false,
-      count: 0,
+      pageNum: 0,
     };
   },
   methods: {
     allCheckedChange(val) {
       this.result = this.checked
-        ? this.list[this.activeName].map((item) => item.code)
+        ? this.list[this.activeName].map((item) => item.id)
         : [];
     },
     checkboxGroupChange(val) {
@@ -206,56 +144,174 @@ export default {
       this.$refs.allcheckbox.toggle(currentChecked);
     },
     onLoad() {
-      setTimeout(() => {
-        this.error = true;
-        this.loading = false;
-        this.refreshing = false;
-        // if (this.refreshing) {
-        //   this.list = [];
-        //   this.refreshing = false;
-        //   this.count = 0;
-        // }
-        // this.count+=1;
-        // for (let i = 0; i < 10; i++) {
-        //   this.list.push({
-        //     code: `GY201${this.count}${i}`,
-        //     title:
-        //       "标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题",
-        //     text: "方案阶段",
-        //   });
-        // }
-        // this.loading = false;
+      this.pageNum++;
+      let url = "/api/worktime/dTalk/selectMyApproveList";
+      let params = {
+        username: this.$userId,
+        checkStatus: "20",
+        checkWtTypeList: [this.activeValue[this.activeName]],
+        pageNum: this.pageNum,
+        pageSize: 20,
+      };
+      if (this.activeName == "check") {
+        url = "/api/worktime/dTalk/selectMyApprovedList";
+        params = {
+          username: this.$userId,
+          pageNum: this.pageNum,
+          pageSize: 20,
+        };
+      }
+      this.$axios
+        .post(url, params)
+        .then((res) => {
+          const rows = res.data.rows.map((item) => {
+            const list = item.docSubject
+              .split(";")
+              .filter((item) => !!item)
+              .map((hour) => {
+                const hourData = hour.split(",");
+                return {
+                  time: hourData[0],
+                  week: `weekdayList[${moment(item).day()}]`,
+                  date: hourData[1],
+                };
+              });
+            return {
+              ...item,
+              hourList: list,
+            };
+          });
 
-        // if (this.list.length >= 40) {
-        //   this.finished = true;
-        // }
-      }, 1000);
+          if (this.pageNum == 1) {
+            this.list[this.activeName] = rows;
+          } else {
+            this.list[this.activeName] = this.list[this.activeName].concat(
+              rows
+            );
+          }
+          if (
+            rows.length == 0 ||
+            res.data.total === this.list[this.activeName].length
+          ) {
+            this.finished = true;
+          }
+        })
+        .catch((err) => {
+          this.error = true;
+        })
+        .finally(() => {
+          this.loading = false;
+          this.refreshing = false;
+        });
     },
     onRefresh() {
-      // 清空列表数据
+      this.pageNum = 0;
+      this.error = false;
       this.finished = false;
-
-      // 重新加载数据
-      // 将 loading 设置为 true，表示处于加载状态
-      this.loading = true;
       this.onLoad();
     },
-    showComment(text) {
-      if (!text) {
-        return false;
-      }
-      this.$Dialog.alert({
-        message: text,
-      });
+    showComment(item, date) {
+      this.$axios
+        .post("/api/worktime/dTalk/selectMyApproveDesc", item)
+        .then((res) => {
+          const item = res.data.find((item) => {
+            return moment(date).valueOf() === item.fdWorkhoursDate;
+          });
+
+          if (!item.fdDesc) {
+            this.$Dialog.alert({
+              message: "<div style='color:#455a6499;'>没有备注信息</div>",
+            });
+          } else {
+            this.$Dialog.alert({
+              message: item.fdDesc,
+            });
+          }
+        });
     },
     toggleTabs(val) {
       this.result = [];
+      this.checked = false;
+      this.onRefresh();
+    },
+    handleDisapprove() {
+      if (this.result.length < 1) {
+        this.$Toast("请选择需要操作的数据");
+        return false;
+      }
+      this.disapproveDialog = true;
+    },
+    handleBeforeClose(action, done) {
+      if (action === "confirm") {
+        this.$axios
+          .post("/api/worktime/dTalk/handleDisapprove", {
+            username: this.$userId,
+            fdOpinion: this.fdOpinion,
+            selectTableList: this.result.map((item) => {
+              return this.list[this.activeName].find(
+                (currentItem) => currentItem.id === item
+              );
+            }),
+          })
+          .then((res) => {
+            this.$Toast(res.message);
+
+            this.onRefresh();
+          })
+          .catch((err) => {
+            this.$Toast(err.message);
+          })
+          .finally(() => {
+            done();
+          });
+      } else {
+        done();
+      }
+    },
+    handleApprove() {
+      if (this.result.length < 1) {
+        this.$Toast("请选择需要操作的数据");
+        return false;
+      }
+      this.$Dialog.confirm({
+        message: "确定审核通过吗？",
+        beforeClose: (action, done) => {
+          if (action === "confirm") {
+            this.$axios
+              .post("/api/worktime/dTalk/handleApprove", {
+                username: this.$userId,
+                selectTableList: this.result.map((item) => {
+                  return this.list[this.activeName].find(
+                    (currentItem) => currentItem.id === item
+                  );
+                }),
+              })
+              .then((res) => {
+                this.$Toast(res.message);
+
+                this.onRefresh();
+              })
+              .catch((err) => {
+                this.$Toast(err.message);
+              })
+              .finally(() => {
+                done();
+              });
+          } else {
+            done();
+          }
+        },
+      });
     },
   },
-  activated() {
-    this.checked = false;
-    // this.refreshing = true;
-    // this.onLoad();
+  created() {
+    this.$axios
+      .post("/api/worktime/dTalk/selectTodoHandleCount", {
+        username: this.$userId,
+      })
+      .then((res) => {
+        this.sumList = res.data;
+      });
   },
 };
 </script>
@@ -302,5 +358,12 @@ export default {
     width: 100%;
     font-size: 0;
   }
+}
+.disapprove-dialog {
+  p {
+    padding: 0 15px;
+  }
+
+  // background: #f7f8fa;
 }
 </style>

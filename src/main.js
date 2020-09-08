@@ -77,18 +77,14 @@ import axios from "./utils/http.js"
 Vue.prototype.$axios = axios
 
 // 获取用户Id
-const userId = localStorage.getItem('dd-userId')
-if(userId){
-  Vue.prototype.$userId = userId
-}
-Vue.prototype.$userId = 'yangwang'
+
+// Vue.prototype.$userId = 'caozhengjie' // 本地联调写死用户
 
 // 导航守卫
 import {requestAuthCode } from './utils/AuthCOde'
 router.beforeEach((to, from, next) => {
   if (!Vue.prototype.$userId) {
-    next()
-    // requestAuthCode(next)
+    requestAuthCode(next)
   }else{
     next()
   }
