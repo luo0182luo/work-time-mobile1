@@ -333,7 +333,7 @@ export default {
             val
               .filter((item) => {
                 return !this.itemsManHourList.some(
-                  (beforeItem) => beforeItem.fdProjectId === item.fdProjectId
+                  (beforeItem) => beforeItem.fdProjectId === item.fdProjectId&&beforeItem.fdProjectStage === item.fdProjectStage
                 );
               })
               .map((item) => this.getHoursFn(item))
