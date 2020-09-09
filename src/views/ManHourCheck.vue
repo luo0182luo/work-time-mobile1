@@ -36,7 +36,7 @@
           </template>
         </van-cell>
         <van-checkbox-group v-model="result" ref="checkboxGroup" @change="checkboxGroupChange">
-          <div class="man_hour_check-content" v-for="item in list[activeName]" :key="item.id">
+          <div class="man_hour_check-content" v-for="(item,i) in list[activeName]" :key="i">
             <van-cell>
               <div class="man_hour_check-content-item">
                 <van-checkbox
