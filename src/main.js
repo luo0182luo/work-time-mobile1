@@ -78,7 +78,7 @@ Vue.prototype.$axios = axios
 
 // 获取用户Id
 
-Vue.prototype.$userId = 'caozhengjie' // 本地联调写死用户
+// Vue.prototype.$userId = 'caozhengjie' // 本地联调写死用户
 
 // 导航守卫
 import {requestAuthCode } from './utils/AuthCOde'
