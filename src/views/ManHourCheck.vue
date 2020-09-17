@@ -164,6 +164,8 @@ export default {
       this.$axios
         .post(url, params)
         .then((res) => {
+          this.testText = JSON.stringify(res);
+
           const rows = res.data.rows.map((item) => {
             const list = item.docSubject
               .split(";")
@@ -197,6 +199,8 @@ export default {
           }
         })
         .catch((err) => {
+          this.testText = JSON.stringify(err);
+
           this.error = true;
         })
         .finally(() => {
@@ -214,6 +218,8 @@ export default {
       this.$axios
         .post("/api/worktime/dTalk/selectMyApproveDesc", item)
         .then((res) => {
+          this.testText = JSON.stringify(res);
+
           const item = res.data.find((item) => {
             return moment(date).valueOf() === item.fdWorkhoursDate;
           });
@@ -227,6 +233,9 @@ export default {
               message: item.fdDesc,
             });
           }
+        })
+        .catch((err) => {
+          this.testText = JSON.stringify(res);
         });
     },
     toggleTabs(val) {
@@ -254,12 +263,12 @@ export default {
             }),
           })
           .then((res) => {
-            this.$Toast(res.message);
+            this.testText = JSON.stringify(res);
 
             this.onRefresh();
           })
           .catch((err) => {
-            this.$Toast(err.message);
+            this.testText = JSON.stringify(err);
           })
           .finally(() => {
             done();
@@ -287,12 +296,12 @@ export default {
                 }),
               })
               .then((res) => {
-                this.$Toast(res.message);
+                this.testText = JSON.stringify(res);
 
                 this.onRefresh();
               })
               .catch((err) => {
-                this.$Toast(err.message);
+                this.testText = JSON.stringify(err);
               })
               .finally(() => {
                 done();

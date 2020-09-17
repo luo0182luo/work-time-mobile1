@@ -13,6 +13,10 @@
   "dependencies": {
     "@vant/touch-emulator": "^1.2.0",
     "axios": "^0.19.2",
+    "base": "^0.11.1",
+    "dingtalk-jsapi": "^2.12.2",
+    "js-cookie": "^2.2.0",
+    "moment": "^2.27.0",
     "vant": "^2.10.2",
     "vue": "^2.5.2",
     "vue-i18n": "^8.21.0",

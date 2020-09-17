@@ -44,6 +44,7 @@
           </van-cell>
         </van-checkbox-group>
       </div>
+      <div>{{testText}}</div>
     </van-pull-refresh>
   </div>
 </template>
@@ -58,6 +59,7 @@ export default {
       list: [],
       result: [],
       refreshing: false,
+      testText: "",
     };
   },
   computed: {
@@ -90,6 +92,7 @@ export default {
               userId: this.$userId,
             })
             .then((res) => {
+              this.testText = JSON.stringify(res);
               this.list = this.list = res.data.map((item) => {
                 return {
                   id: item.id,
@@ -99,6 +102,9 @@ export default {
                   fdProjectId: item.id,
                 };
               });
+            })
+            .catch((err) => {
+              this.testText = JSON.stringify(err);
             })
             .finally(() => {
               this.refreshing = false;
@@ -111,6 +117,8 @@ export default {
               userId: this.$userId,
             })
             .then((res) => {
+              this.testText = JSON.stringify(res);
+
               this.list = res.data.map((item) => {
                 return {
                   id: item.id,
@@ -119,6 +127,9 @@ export default {
                   fdTaskId: item.id,
                 };
               });
+            })
+            .catch((err) => {
+              this.testText = JSON.stringify(err);
             })
             .finally(() => {
               this.refreshing = false;

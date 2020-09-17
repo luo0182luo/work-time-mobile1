@@ -83,7 +83,7 @@ Vue.prototype.$axios = axios
 // 导航守卫
 import {requestAuthCode } from './utils/AuthCOde'
 router.beforeEach((to, from, next) => {
-  if (!Vue.prototype.$userId) {
+  if (!$userId) {
     requestAuthCode(next)
   }else{
     next()

@@ -166,6 +166,8 @@
           </van-cell>
         </div>
       </div>
+
+      <div>{{testText}}</div>
     </van-pull-refresh>
     <!-- </van-form> -->
     <!-- 提交 -->
@@ -289,6 +291,7 @@ export default {
       manHourSum: 0,
       confirmShow: false,
       confirmType: "confirmTime",
+      testText: "",
     };
   },
   computed: {
@@ -333,7 +336,9 @@ export default {
             val
               .filter((item) => {
                 return !this.itemsManHourList.some(
-                  (beforeItem) => beforeItem.fdProjectId === item.fdProjectId&&beforeItem.fdProjectStage === item.fdProjectStage
+                  (beforeItem) =>
+                    beforeItem.fdProjectId === item.fdProjectId &&
+                    beforeItem.fdProjectStage === item.fdProjectStage
                 );
               })
               .map((item) => this.getHoursFn(item))
@@ -556,6 +561,8 @@ export default {
       this.$axios
         .get(`/api/worktime/dTalk/list/${this.$userId}`)
         .then((res) => {
+          this.testText = JSON.stringify(res);
+
           this.weekList = res.data.weekList.map((item, i) => {
             return {
               name: `weeks[${moment(item).day()}]`,
@@ -564,7 +571,8 @@ export default {
               clocking: res.data.clockingList[i],
             };
           });
-          this.currentTime = res.data.weekList[6];
+          // this.currentTime = res.data.weekList[6];
+          this.currentTime = 0;
           this.currentClocking = res.data.clockingList[6];
           // 生成七天list的函数
           this.getHoursFn = this.getHoursList(
@@ -600,6 +608,9 @@ export default {
                 })
                 .flat()
             : [];
+        })
+        .catch((err) => {
+          this.testText = JSON.stringify(err);
         })
         .finally(() => {
           this.refreshing = false;
