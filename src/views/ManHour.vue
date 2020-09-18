@@ -160,6 +160,12 @@
                     name="info"
                     @click="commentShowFn(item)"
                   />
+                  <van-icon
+                    class="man_hour-custom-operate-comment"
+                    name="info"
+                    @click="commentShowFn(item)"
+                  />
+
                 </div>
               </div>
             </template>
